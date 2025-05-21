@@ -45,6 +45,23 @@ class Database:
             return None
 
     @classmethod
+    def delete(cls, query: str):
+        """Executa um delete no banco de dados"""
+        cls.connect()
+        if cls._conn is None:
+            logger.error("Não foi possível executar a query: conexão não disponível.")  # noqa: E501
+            return None
+
+        try:
+            logger.debug(f"Executando query: {query}")
+            cls._cursor.execute(query)
+            cls._conn.commit()
+            return cls._cursor.rowcount
+        except mysql.connector.Error as err:
+            logger.error(f"Erro na query: {err}")
+            return None
+
+    @classmethod
     def close(cls):
         """Fecha a conexão com o banco de dados"""
         if cls._conn and cls._conn.is_connected():
