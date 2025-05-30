@@ -1,8 +1,8 @@
-import os
+from app.logger import get_logger
+from config import DATABASE_CONFIG
 import mysql.connector
-import logging
 
-logger = logging.getLogger(__name__)
+logger = get_logger("database_service")
 
 
 class Database:
@@ -16,10 +16,10 @@ class Database:
         if cls._conn is None or not cls._conn.is_connected():
             try:
                 cls._conn = mysql.connector.connect(
-                    host=os.environ.get("DATABASE_HOSTNAME"),
-                    user=os.environ.get("DATABASE_USERNAME"),
-                    password=os.environ.get("DATABASE_PASSWORD"),
-                    database=os.environ.get("DATABASE_BASENAME")
+                    host=DATABASE_CONFIG['host'],
+                    user=DATABASE_CONFIG['user'],
+                    password=DATABASE_CONFIG['password'],
+                    database=DATABASE_CONFIG['database']
                 )
                 cls._cursor = cls._conn.cursor(dictionary=True, buffered=True)
                 logger.info("Conexão com o banco estabelecida.")
@@ -33,7 +33,7 @@ class Database:
         """Executa um select no banco de dados au receber uma query"""
         cls.connect()
         if cls._conn is None:
-            logger.error("Não foi possível executar a query: conexão não disponível.")
+            logger.error("Não foi possível executar a query: conexão não disponível.")  # noqa: E501
             return None
 
         try:
@@ -75,6 +75,27 @@ class Database:
             return cls._cursor.rowcount
         except mysql.connector.Error as err:
             logger.error(f"Erro na query: {err}")
+            return None
+
+    @classmethod
+    def insert(cls, query: str, values):
+        """Executa um insert no banco de dados.
+        Suporta múltiplos inserts com executemany."""
+        cls.connect()
+        if cls._conn is None:
+            logger.error("Não foi possível executar a query: conexão não disponível.")  # noqa: E501
+            return None
+
+        try:
+            logger.debug(f"Executando insert: {query} | Valores: {values}")
+            if isinstance(values, list) and all(isinstance(v, (tuple, list)) for v in values):  # noqa: E501
+                cls._cursor.executemany(query, values)
+            else:
+                cls._cursor.execute(query, values)
+            cls._conn.commit()
+            return cls._cursor.rowcount
+        except mysql.connector.Error as err:
+            logger.error(f"Erro no insert: {err}")
             return None
 
     @classmethod
