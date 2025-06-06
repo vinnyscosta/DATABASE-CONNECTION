@@ -1,5 +1,5 @@
-from app.logger import get_logger
-from config import DATABASE_CONFIG
+from .logger import get_logger
+from typing import Dict
 import mysql.connector
 
 logger = get_logger("database_service")
@@ -11,15 +11,15 @@ class Database:
     _cursor = None
 
     @classmethod
-    def connect(cls):
+    def connect(cls, database_config: Dict):
         """Conecta ao banco de dados"""
         if cls._conn is None or not cls._conn.is_connected():
             try:
                 cls._conn = mysql.connector.connect(
-                    host=DATABASE_CONFIG['host'],
-                    user=DATABASE_CONFIG['user'],
-                    password=DATABASE_CONFIG['password'],
-                    database=DATABASE_CONFIG['database']
+                    host=database_config['host'],
+                    user=database_config['user'],
+                    password=database_config['password'],
+                    database=database_config['database']
                 )
                 cls._cursor = cls._conn.cursor(dictionary=True, buffered=True)
                 logger.info("Conexão com o banco estabelecida.")

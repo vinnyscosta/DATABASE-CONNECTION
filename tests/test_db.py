@@ -1,5 +1,4 @@
 import os
-import pytest
 from database_client.db import Database
 
 # Certifique-se de que as variáveis de ambiente estão setadas para o teste
@@ -7,6 +6,13 @@ os.environ["DATABASE_HOSTNAME"] = "localhost"
 os.environ["DATABASE_USERNAME"] = "root"
 os.environ["DATABASE_PASSWORD"] = ""
 os.environ["DATABASE_BASENAME"] = ""
+
+DATABASE_CONFIG = {
+    'host': os.getenv["DATABASE_HOSTNAME"],
+    'user': os.getenv["DATABASE_USERNAME"],
+    'password': os.getenv["DATABASE_PASSWORD"],
+    'database': os.getenv["DATABASE_BASENAME"],
+}
 
 
 def test_connection():
@@ -18,7 +24,7 @@ def test_connection():
 
 
 def test_query_select():
-    """Testa se uma query SELECT simples retorna um resultado (ajuste para sua base)"""
+    """Testa se uma query SELECT simples retorna um resultado (ajuste para sua base)"""  # noqa: E501
     resultado = Database.select("SELECT 1 as test_col", one=True)
     assert resultado is not None
     assert "test_col" in resultado
